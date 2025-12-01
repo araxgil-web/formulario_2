@@ -189,19 +189,7 @@ Prueba de formulario y base de datos
     }
   </style>
 </head>
-<script>
-  fetch(
-    "https://script.google.com/macros/s/AKfycbzTrBdsnvokupelUqCOm8-1xGGaDOwBJ3FSZDl7HlRkrhtt9fAoz58W8kmV0bRZB4pvQA/exec"
-  )
-	
-	redirect: "follow",
-method: "POST",
-body: "FormDataString",
-headers: {
-    "Content-Type": "Text/Plain;charset=utf-8"
-}
 
-</script>
 
 <body>
 
@@ -266,7 +254,7 @@ Cuidado Diario para tu Piel</h1>
     </div>
   </section>
 
-  <form method="POST" action="https://script.google.com/macros/s/AKfycbwLwBSrlK_O4r4WW4WSJvZAjaNm3kkVPwIpM6UaUNpVifgdoNQ3j4IQ5ZAtYIXxl_azDA/exec">
+  <form id="formulario_pedido">
     <fieldset>
       <legend>Información Personal</legend>
       <label for="nombre">Nombre:</label>
@@ -317,12 +305,64 @@ Cuidado Diario para tu Piel</h1>
         <button type="submit">Enviar Pedido</button>
         <button type="reset">Limpiar</button>
       </div>
-    </fieldset>
+</fieldset>  
   </form>
+  <div id="mensaje_resultado" style="max-width: 900px; margin: 20px auto; padding: 20px; border-radius: 10px; text-align: center; font-weight: bold;"></div> 
+
+<div class="footer">
 
   <div class="footer">
     <p>© 2025 NIVEA México — Cuidar la piel es cuidar lo que amas.</p>
   </div>
 
+<script>
+  // URL del Apps Script (Asegúrate de que esta URL sea la correcta y desplegada como "cualquier usuario")
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbwLwBSrlK_O4r4WW4WSJvZAjaNm3kkVPwIpM6UaUNpVifgdoNQ3j4IQ5ZAtYIXxl_azDA/exec';
+
+  const form = document.getElementById('formulario_pedido');
+  const resultadoDiv = document.getElementById('mensaje_resultado');
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault(); // Evita el envío predeterminado del formulario que recarga la página
+    
+    // 1. Mostrar estado de carga y deshabilitar botón
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando...';
+    resultadoDiv.style.display = 'none'; // Ocultar mensaje anterior
+
+    // 2. Enviar datos de forma asíncrona usando fetch
+    fetch(scriptURL, { 
+      method: 'POST', 
+      body: new FormData(form) // Recolecta todos los datos del formulario
+    })
+    .then(response => response.json()) // Convierte la respuesta JSON del Apps Script
+    .then(data => {
+      // 3. Manejar la respuesta
+      if (data.result === 'success') {
+        resultadoDiv.innerHTML = `✅ **¡Pedido enviado con éxito!** Gracias por tu compra. Te contactaremos pronto. (Registro en fila ${data.row})`;
+        resultadoDiv.style.cssText += 'background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;'; // Estilo para éxito
+        form.reset(); // Limpia el formulario
+      } else {
+        resultadoDiv.innerHTML = `❌ **Error al enviar el pedido.** Por favor, inténtalo de nuevo. Error: ${data.error || 'Desconocido'}`;
+        resultadoDiv.style.cssText += 'background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;'; // Estilo para error
+      }
+    })
+    .catch(error => {
+      // 4. Manejar errores de red o conexión
+      console.error('Error:', error);
+      resultadoDiv.innerHTML = '⚠️ **Error de red.** Por favor, verifica tu conexión a internet.';
+      resultadoDiv.style.cssText += 'background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;'; // Estilo para advertencia
+    })
+    .finally(() => {
+      // 5. Restablecer el botón y mostrar el mensaje
+      submitButton.disabled = false;
+      submitButton.textContent = 'Enviar Pedido';
+      resultadoDiv.style.display = 'block';
+      resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); // Mover la vista al mensaje
+    });
+  });
+</script>
+	
 </body>
 </html>
